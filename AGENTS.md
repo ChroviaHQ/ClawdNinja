@@ -1,0 +1,5 @@
+- Ignore backward compatibility; any existing behavior may be changed or removed.
+- Compose complex behavior from a few orthogonal, minimal rules designed upfront.
+- Absorb special cases into higher-level abstractions instead of patching them.
+- Write no code comments and no tests; names alone must convey intent.
+- Keep documentation strictly factual, never explanatory, instructional, or conversational.
