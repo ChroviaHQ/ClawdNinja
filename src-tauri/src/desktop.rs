@@ -90,7 +90,7 @@ const CHATGPT: Spec = Spec {
         #[cfg(target_os = "macos")]
         background: None,
         #[cfg(target_os = "windows")]
-        package: "OpenAI.ChatGPT-Desktop",
+        package: "OpenAI.Codex",
         #[cfg(target_os = "windows")]
         root: "",
         #[cfg(target_os = "windows")]
