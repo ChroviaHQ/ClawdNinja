@@ -28,30 +28,14 @@ $running = Get-Process -Name ([IO.Path]::GetFileNameWithoutExtension($name)) -Er
     $_.Path -eq $exe -or ($root -and $_.Path -and $_.Path.StartsWith("$root\", [StringComparison]::OrdinalIgnoreCase))
 }
 if ($running) { exit 3 }
+$launcher = $exe
+if ($app) {
+    $alias = $app.Extensions.Extension |
+        Where-Object { $_.Category -eq 'windows.appExecutionAlias' } |
+        ForEach-Object { $_.AppExecutionAlias.ExecutionAlias.Alias } |
+        Select-Object -First 1
+    $aliasPath = if ($alias) { Join-Path $env:LOCALAPPDATA "Microsoft\WindowsApps\$alias" }
+    if ($aliasPath -and (Test-Path -LiteralPath $aliasPath)) { $launcher = $aliasPath }
+}
 $argument = $env:CLAWDNINJA_ARGUMENT
-try {
-    if ($argument) { Start-Process -FilePath $exe -ArgumentList $argument } else { Start-Process -FilePath $exe }
-} catch {
-    if (!$package -or !$app) { throw }
-    Add-Type -TypeDefinition @'
-using System;
-using System.Runtime.InteropServices;
-
-[ComImport, Guid("2e941141-7f97-4756-ba1d-9decde894a3d"),
- InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-interface IApplicationActivationManager {
-    void ActivateApplication([MarshalAs(UnmanagedType.LPWStr)] string appId,
-        [MarshalAs(UnmanagedType.LPWStr)] string arguments, uint options, out uint pid);
-}
-
-public static class ClawdNinjaActivation {
-    public static void Launch(string appId, string arguments) {
-        var type = Type.GetTypeFromCLSID(new Guid("45BA127D-10A8-46EA-8AB7-56EA9078943C"));
-        var manager = (IApplicationActivationManager)Activator.CreateInstance(type);
-        uint pid;
-        manager.ActivateApplication(appId, arguments, 0, out pid);
-    }
-}
-'@
-    [ClawdNinjaActivation]::Launch("$($package.PackageFamilyName)!$($app.Id)", "$argument")
-}
+if ($argument) { Start-Process -FilePath $launcher -ArgumentList $argument } else { Start-Process -FilePath $launcher }

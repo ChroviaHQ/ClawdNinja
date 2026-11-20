@@ -41,13 +41,22 @@ fn run_with_lines(cmd: &mut Command, mut on_line: impl FnMut(&str)) -> Result<()
     if status.success() { Ok(()) } else { Err(failure(status, &output)) }
 }
 
+#[cfg(windows)]
+fn curl() -> Command {
+    let mut cmd = Command::new(crate::system::system32("curl.exe"));
+    cmd.args(["-q", "--ssl-revoke-best-effort"]);
+    cmd
+}
+
+#[cfg(unix)]
+fn curl() -> Command {
+    let mut cmd = Command::new("/usr/bin/curl");
+    cmd.arg("-q");
+    cmd
+}
+
 fn download(proxy: &str, source: &str, path: &Path) -> Result<(), CommandError> {
-    #[cfg(windows)]
-    let curl = crate::system::system32("curl.exe");
-    #[cfg(unix)]
-    let curl = std::path::PathBuf::from("/usr/bin/curl");
-    let output = hidden(Command::new(curl).args([
-        "-q",
+    let output = hidden(curl().args([
         "--fail",
         "--location",
         "--silent",
