@@ -2,6 +2,8 @@
 
 ClawdNinja is a desktop app for macOS and Windows that keeps Claude Desktop, Claude Science, and Claude Code on the network egress you choose. ChatGPT is also supported.
 
+<p align="center"><img src="docs/screenshot.png" alt="ClawdNinja" width="400"></p>
+
 ```
 Application ──► Network egress (127.0.0.1:1080) ──► Destination
 ```
@@ -70,6 +72,10 @@ npm run release -- 0.2.0
 ```
 
 This bumps the version, tags `v0.2.0`, and pushes. GitHub Actions then builds and signs both platforms into a draft release. Publish the draft, and installed copies will offer the update.
+
+## Trademarks
+
+ClawdNinja is not affiliated with Anthropic or OpenAI. Claude and ChatGPT are trademarks of their respective owners.
 
 ## License
 
