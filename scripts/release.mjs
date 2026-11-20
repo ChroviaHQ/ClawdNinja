@@ -14,7 +14,7 @@ if (execFileSync('git', ['status', '--porcelain'], {encoding: 'utf8'}).trim()) {
   process.exit(1);
 }
 
-run('npm', ['version', version, '--no-git-tag-version']);
+run(process.execPath, [process.env.npm_execpath, 'version', version, '--no-git-tag-version']);
 const cargoToml = readFileSync('Cargo.toml', 'utf8');
 writeFileSync('Cargo.toml', cargoToml.replace(/^version = "[^"]+"/m, `version = "${version}"`));
 run('cargo', ['update', '--workspace', '--offline']);
