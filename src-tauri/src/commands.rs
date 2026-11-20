@@ -1,24 +1,17 @@
-use std::net::{Ipv4Addr, SocketAddr, TcpStream};
 use std::num::NonZeroU16;
-use std::time::Duration;
 
-use clawdninja_core::{proxy_url, settings_path};
+use clawdninja_core::settings_path;
 use tauri::{AppHandle, Emitter, State};
 
 use crate::desktop::App;
+use crate::egress::Egress;
 use crate::error::CommandError;
-use crate::update::PendingUpdate;
+use crate::update::{PendingUpdate, update_failed};
 use crate::{cli, desktop, install, system};
 
-const PROXY_CONNECT_TIMEOUT: Duration = Duration::from_secs(2);
-
-fn reachable_proxy(port: NonZeroU16) -> Result<String, CommandError> {
-    TcpStream::connect_timeout(
-        &SocketAddr::from((Ipv4Addr::LOCALHOST, port.get())),
-        PROXY_CONNECT_TIMEOUT,
-    )
-    .map_err(|error| CommandError::new("egress_unreachable", error))?;
-    Ok(proxy_url(port))
+#[tauri::command]
+pub fn get_port(egress: State<'_, Egress>) -> NonZeroU16 {
+    egress.port()
 }
 
 #[tauri::command]
@@ -27,8 +20,12 @@ pub async fn is_app_installed(app: App) -> Result<bool, CommandError> {
 }
 
 #[tauri::command]
-pub async fn launch_app(app: App, port: NonZeroU16) -> Result<(), CommandError> {
-    desktop::launch(app, &reachable_proxy(port)?)
+pub async fn launch_app(
+    egress: State<'_, Egress>,
+    app: App,
+    port: NonZeroU16,
+) -> Result<(), CommandError> {
+    desktop::launch(app, &egress.connect(port)?)
 }
 
 #[tauri::command]
@@ -44,14 +41,18 @@ pub async fn is_cli_installed() -> bool {
 }
 
 #[tauri::command]
-pub async fn launch_cli(port: NonZeroU16) -> Result<(), CommandError> {
-    let url = reachable_proxy(port)?;
+pub async fn launch_cli(egress: State<'_, Egress>, port: NonZeroU16) -> Result<(), CommandError> {
+    let url = egress.connect(port)?;
     cli::open_terminal(&url, &cli::locate().ok_or_else(|| CommandError::code("cli_missing"))?)
 }
 
 #[tauri::command]
-pub async fn install_cli(app: AppHandle, port: NonZeroU16) -> Result<(), CommandError> {
-    let url = reachable_proxy(port)?;
+pub async fn install_cli(
+    app: AppHandle,
+    egress: State<'_, Egress>,
+    port: NonZeroU16,
+) -> Result<(), CommandError> {
+    let url = egress.connect(port)?;
     tauri::async_runtime::spawn_blocking(move || {
         install::install_cli(&url, |stage| {
             let _ = app.emit("install://stage", stage);
@@ -68,9 +69,13 @@ pub async fn is_proxy_applied() -> Result<bool, CommandError> {
 }
 
 #[tauri::command]
-pub async fn apply_proxy(port: NonZeroU16) -> Result<String, CommandError> {
+pub async fn apply_proxy(
+    egress: State<'_, Egress>,
+    port: NonZeroU16,
+) -> Result<String, CommandError> {
+    let url = egress.connect(port)?;
     let path = settings_path()?;
-    clawdninja_core::write(&path, &proxy_url(port))?;
+    clawdninja_core::write(&path, &url)?;
     Ok(path.display().to_string())
 }
 
@@ -107,8 +112,4 @@ pub async fn install_update(
     update.install(bytes).map_err(update_failed)?;
     app.request_restart();
     Ok(())
-}
-
-fn update_failed(error: impl ToString) -> CommandError {
-    CommandError::new("update_failed", error)
 }

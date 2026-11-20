@@ -5,6 +5,8 @@ use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_updater::{Update, UpdaterExt};
 
+use crate::egress::Egress;
+use crate::error::CommandError;
 use crate::locale::labels;
 use crate::tray::Tray;
 use crate::window::show_main_window;
@@ -41,7 +43,7 @@ pub fn spawn_manual_update_check(app: AppHandle) {
                 labels().up_to_date.replace("{version}", &app.package_info().version.to_string()),
             ),
             Err(error) => {
-                show_message(&app, labels().check_failed.replace("{detail}", &error.to_string()))
+                show_message(&app, labels().check_failed.replace("{detail}", &error.detail))
             }
         }
     });
@@ -51,13 +53,24 @@ fn show_message(app: &AppHandle, message: String) {
     app.dialog().message(message).title("ClawdNinja").show(|_| {});
 }
 
-async fn check(app: &AppHandle) -> tauri_plugin_updater::Result<bool> {
+async fn check(app: &AppHandle) -> Result<bool, CommandError> {
     let pending = app.state::<PendingUpdate>();
     if pending.0.lock().is_ok_and(|update| update.is_some()) {
         return Ok(true);
     }
-    let result = async { app.updater()?.check().await }.await;
-    let Some(update) = result.inspect_err(|error| tracing::warn!(%error, "update check failed"))?
+    let egress = app.state::<Egress>();
+    let proxy = egress.connect(egress.port())?;
+    let result = async {
+        app.updater_builder()
+            .proxy(proxy.parse().expect("egress URL is valid"))
+            .build()?
+            .check()
+            .await
+    }
+    .await;
+    let Some(update) = result
+        .inspect_err(|error| tracing::warn!(%error, "update check failed"))
+        .map_err(update_failed)?
     else {
         return Ok(false);
     };
@@ -67,4 +80,8 @@ async fn check(app: &AppHandle) -> tauri_plugin_updater::Result<bool> {
     }
     let _ = app.emit("app://update", version);
     Ok(true)
+}
+
+pub fn update_failed(error: impl ToString) -> CommandError {
+    CommandError::new("update_failed", error)
 }

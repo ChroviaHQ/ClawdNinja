@@ -21,6 +21,7 @@ function listenPayload<T>(event: string, handler: (payload: T) => void): Promise
 }
 
 export const api = {
+  getPort: () => invoke<number>('get_port'),
   isAppInstalled: (app: DesktopApp) => invoke<boolean>('is_app_installed', {app}),
   launchApp: (app: DesktopApp, port: number) => invoke<void>('launch_app', {app, port}),
   openAppDownload: (app: DesktopApp) => invoke<string>('open_app_download', {app}),

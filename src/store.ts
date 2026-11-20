@@ -4,8 +4,6 @@ import { api, type CommandError, type InstallStage, toCommandError } from './api
 import { describeError } from './i18n';
 import { type Action, type Item, type ItemId, ITEMS } from './items';
 
-const PORT_KEY = 'proxyPort';
-const DEFAULT_PORT = '1080';
 const MAX_PORT = 65535;
 const SUCCESS_NOTE_MS = 4000;
 
@@ -65,7 +63,7 @@ export const useStore = create<Store>((set, get) => {
   };
 
   return {
-    port: localStorage.getItem(PORT_KEY) ?? DEFAULT_PORT,
+    port: '',
     probes: checking,
     busy: null,
     note: null,
@@ -121,9 +119,6 @@ export const useStore = create<Store>((set, get) => {
       set({busy: {id: item.id, startedAt: Date.now()}, note: null});
       try {
         const text = await action.run(parsed ?? 0);
-        if (parsed !== null) {
-          localStorage.setItem(PORT_KEY, String(parsed));
-        }
         notify({text, error: false});
       } catch (raw) {
         const text = describeError(toCommandError(raw), {name: item.name, port: parsed ?? 0});

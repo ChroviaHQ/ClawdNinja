@@ -1,6 +1,7 @@
 mod cli;
 mod commands;
 mod desktop;
+mod egress;
 mod error;
 mod install;
 mod locale;
@@ -13,6 +14,7 @@ mod window;
 use tauri::RunEvent;
 use tauri::{Manager, WindowEvent};
 
+use crate::egress::Egress;
 use crate::tray::Tray;
 use crate::update::{PendingUpdate, spawn_update_checker};
 use crate::window::{create_main_window, show_main_window};
@@ -32,6 +34,7 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
+            commands::get_port,
             commands::is_app_installed,
             commands::launch_app,
             commands::open_app_download,
@@ -47,6 +50,7 @@ pub fn run() {
             commands::install_update
         ])
         .setup(|app| {
+            app.manage(Egress::load(app.path().app_config_dir()?.join("egress-port")));
             app.manage(Tray::new(app.handle())?);
             app.manage(PendingUpdate::default());
             spawn_update_checker(app.handle().clone());
