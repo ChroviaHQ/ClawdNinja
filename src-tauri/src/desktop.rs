@@ -114,14 +114,14 @@ fn chromium_arguments(app: &Spec, url: &str) -> Vec<String> {
 enum State {
     Missing,
     Ready,
-    Running(&'static str),
+    Running,
 }
 
 impl State {
     fn ready(self) -> Result<(), CommandError> {
         match self {
             State::Missing => Err(CommandError::code("app_missing")),
-            State::Running(code) => Err(CommandError::code(code)),
+            State::Running => Err(CommandError::code("app_running")),
             State::Ready => Ok(()),
         }
     }
@@ -158,7 +158,7 @@ fn lookup(app: &Spec) -> Result<State, CommandError> {
     )?;
     Ok(match stdout.trim_ascii() {
         b"missing" => State::Missing,
-        b"running" => State::Running("app_running"),
+        b"running" => State::Running,
         _ => State::Ready,
     })
 }
@@ -213,7 +213,7 @@ fn run_script(app: &Spec, launch: Option<&str>) -> Result<State, CommandError> {
     match result.status.code() {
         Some(0) => Ok(State::Ready),
         Some(2) => Ok(State::Missing),
-        Some(3) => Ok(State::Running("app_running")),
+        Some(3) => Ok(State::Running),
         _ => Err(CommandError::new(
             if launch.is_none() { "probe_failed" } else { "launch_failed" },
             stderr(&result),
