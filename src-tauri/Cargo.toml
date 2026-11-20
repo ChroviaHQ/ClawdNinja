@@ -1,6 +1,6 @@
 [package]
 name = "clawdninja"
-description = "Desktop app for macOS and Windows that launches Claude Desktop, Claude Science, ChatGPT, and Claude Code through the network egress you choose."
+description = "Desktop app for macOS and Windows that launches Claude Desktop, Claude Science, ChatGPT, Visual Studio Code, and Claude Code through the network egress you choose."
 version.workspace = true
 edition.workspace = true
 license.workspace = true

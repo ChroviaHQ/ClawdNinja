@@ -13,6 +13,7 @@ pub enum App {
     Claude,
     Science,
     Chatgpt,
+    Vscode,
 }
 
 impl App {
@@ -21,6 +22,7 @@ impl App {
             App::Claude => &CLAUDE,
             App::Science => &SCIENCE,
             App::Chatgpt => &CHATGPT,
+            App::Vscode => &VSCODE,
         }
     }
 
@@ -35,31 +37,27 @@ struct Spec {
     chromium: bool,
 }
 
+#[cfg(target_os = "macos")]
 struct Locator {
-    #[cfg(target_os = "macos")]
     bundle_id: &'static str,
-    #[cfg(target_os = "macos")]
     background: Option<&'static str>,
-    #[cfg(target_os = "windows")]
+}
+
+#[cfg(target_os = "windows")]
+struct Locator {
     package: &'static str,
-    #[cfg(target_os = "windows")]
-    root: &'static str,
-    #[cfg(target_os = "windows")]
+    roots: &'static [&'static str],
     executable: &'static str,
 }
 
 const CLAUDE: Spec = Spec {
     download: "https://claude.com/download",
+    #[cfg(target_os = "macos")]
+    locator: Locator { bundle_id: "com.anthropic.claudefordesktop", background: None },
+    #[cfg(target_os = "windows")]
     locator: Locator {
-        #[cfg(target_os = "macos")]
-        bundle_id: "com.anthropic.claudefordesktop",
-        #[cfg(target_os = "macos")]
-        background: None,
-        #[cfg(target_os = "windows")]
         package: "Claude",
-        #[cfg(target_os = "windows")]
-        root: "AnthropicClaude",
-        #[cfg(target_os = "windows")]
+        roots: &[r"%LOCALAPPDATA%\AnthropicClaude"],
         executable: "claude.exe",
     },
     chromium: true,
@@ -67,16 +65,15 @@ const CLAUDE: Spec = Spec {
 
 const SCIENCE: Spec = Spec {
     download: "https://claude.com/product/claude-science",
+    #[cfg(target_os = "macos")]
     locator: Locator {
-        #[cfg(target_os = "macos")]
         bundle_id: "com.anthropic.operon",
-        #[cfg(target_os = "macos")]
         background: Some("(^|/)claude-science serve( |$)"),
-        #[cfg(target_os = "windows")]
+    },
+    #[cfg(target_os = "windows")]
+    locator: Locator {
         package: "",
-        #[cfg(target_os = "windows")]
-        root: r"Programs\ClaudeScience",
-        #[cfg(target_os = "windows")]
+        roots: &[r"%LOCALAPPDATA%\Programs\ClaudeScience"],
         executable: "claude-science.exe",
     },
     chromium: false,
@@ -84,17 +81,22 @@ const SCIENCE: Spec = Spec {
 
 const CHATGPT: Spec = Spec {
     download: "https://chatgpt.com/download",
+    #[cfg(target_os = "macos")]
+    locator: Locator { bundle_id: "com.openai.codex", background: None },
+    #[cfg(target_os = "windows")]
+    locator: Locator { package: "OpenAI.Codex", roots: &[], executable: "ChatGPT.exe" },
+    chromium: true,
+};
+
+const VSCODE: Spec = Spec {
+    download: "https://code.visualstudio.com/download",
+    #[cfg(target_os = "macos")]
+    locator: Locator { bundle_id: "com.microsoft.VSCode", background: None },
+    #[cfg(target_os = "windows")]
     locator: Locator {
-        #[cfg(target_os = "macos")]
-        bundle_id: "com.openai.codex",
-        #[cfg(target_os = "macos")]
-        background: None,
-        #[cfg(target_os = "windows")]
-        package: "OpenAI.Codex",
-        #[cfg(target_os = "windows")]
-        root: "",
-        #[cfg(target_os = "windows")]
-        executable: "ChatGPT.exe",
+        package: "",
+        roots: &[r"%LOCALAPPDATA%\Programs\Microsoft VS Code", r"%ProgramFiles%\Microsoft VS Code"],
+        executable: "Code.exe",
     },
     chromium: true,
 };
@@ -199,7 +201,7 @@ fn run_script(app: &Spec, launch: Option<&str>) -> Result<State, CommandError> {
     ]))
     .env("CLAWDNINJA_DETECT", if launch.is_none() { "1" } else { "0" })
     .env("CLAWDNINJA_PACKAGE", app.locator.package)
-    .env("CLAWDNINJA_ROOT", app.locator.root)
+    .env("CLAWDNINJA_ROOTS", app.locator.roots.join(";"))
     .env("CLAWDNINJA_EXECUTABLE", app.locator.executable)
     .env(
         "CLAWDNINJA_ARGUMENT",

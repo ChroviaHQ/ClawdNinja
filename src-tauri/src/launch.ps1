@@ -12,21 +12,28 @@ if ($package) {
     $app = $apps | Where-Object { [IO.Path]::GetFileName($_.Executable) -ieq $name } | Select-Object -First 1
     if ($app) { $exe = Join-Path $package.InstallLocation $app.Executable }
 }
-$root = $null
-if ($env:CLAWDNINJA_ROOT) { $root = Join-Path $env:LOCALAPPDATA $env:CLAWDNINJA_ROOT }
-if (!$exe -and $root -and (Test-Path -LiteralPath $root)) {
-    $versions = Get-ChildItem -LiteralPath $root -Directory -Filter 'app-*' |
-        Sort-Object LastWriteTime -Descending |
-        ForEach-Object { Join-Path $_.FullName $name }
-    $exe = @($versions) + (Join-Path $root $name) |
+$roots = @($env:CLAWDNINJA_ROOTS -split ';' |
+    Where-Object { $_ } |
+    ForEach-Object { [Environment]::ExpandEnvironmentVariables($_) } |
+    Where-Object { Test-Path -LiteralPath $_ })
+if (!$exe) {
+    $exe = $roots |
+        ForEach-Object {
+            $root = $_
+            Get-ChildItem -LiteralPath $root -Directory -Filter 'app-*' |
+                Sort-Object LastWriteTime -Descending |
+                ForEach-Object { Join-Path $_.FullName $name }
+            Join-Path $root $name
+        } |
         Where-Object { Test-Path -LiteralPath $_ } |
         Select-Object -First 1
 }
 if (!$exe) { exit 2 }
 if ($env:CLAWDNINJA_DETECT -eq '1') { exit 0 }
 $running = Get-Process -Name ([IO.Path]::GetFileNameWithoutExtension($name)) -ErrorAction SilentlyContinue | Where-Object {
-    $_.Path -eq $exe -or ($root -and $_.Path -and $_.Path.StartsWith("$root\", [StringComparison]::OrdinalIgnoreCase))
-}
+    $path = $_.Path
+    $path -and ($path -eq $exe -or $roots.Where({ $path.StartsWith("$_\", [StringComparison]::OrdinalIgnoreCase) }, 'First'))
+} | Select-Object -First 1
 if ($running) { exit 3 }
 $launcher = $exe
 if ($app) {

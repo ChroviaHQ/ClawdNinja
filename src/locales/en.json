@@ -31,7 +31,7 @@
     "egressRemoved": "Egress settings removed. Other settings unchanged."
   },
   "quitHintMac": "Quit it with ⌘Q, then launch again.",
-  "quitHintWindows": "Quit it from the system tray, then launch again.",
+  "quitHintWindows": "Quit it completely, then launch again.",
   "errors": {
     "egress_unreachable": "Cannot connect to 127.0.0.1:{port}\nStart the network egress or check the port.",
     "app_missing": "{name} not found. Install it first.",

@@ -42,6 +42,10 @@
   }
 }
 
+[data-item="vscode"] {
+  --accent: #0078d4;
+}
+
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);

@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 
 import { api, type DesktopApp } from './api';
-import { OpenAI } from './components/BrandIcons';
+import { OpenAI, VisualStudioCode } from './components/BrandIcons';
 import type { IconComponent } from './components/ui';
 import { interpolate, t } from './i18n';
 
@@ -68,6 +68,7 @@ export const ITEMS: Item[] = [
   desktopApp('claude', 'Claude Desktop', Monitor),
   desktopApp('science', 'Claude Science', FlaskConical),
   desktopApp('chatgpt', 'ChatGPT', OpenAI),
+  desktopApp('vscode', 'Visual Studio Code', VisualStudioCode),
   {
     id: 'cli',
     name: 'Claude Code CLI',
