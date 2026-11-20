@@ -16,11 +16,13 @@ export function Logo() {
       </g>
       <g className='fill-blindfold'>
         <rect x='3.75' y='5.6' width='8.5' height='1.3' />
-        <rect x='12.25' y='5.4' width='.75' height='1.2' />
-        <rect x='13' y='4.8' width='.8' height='.8' />
-        <rect x='13.8' y='4.1' width='.8' height='.8' />
-        <rect x='13' y='5.7' width='.9' height='.7' />
-        <rect x='13.9' y='5.5' width='.8' height='.7' />
+        <g className='logo-tail'>
+          <rect x='12.25' y='5.4' width='.75' height='1.2' />
+          <rect x='13' y='4.8' width='.8' height='.8' />
+          <rect x='13.8' y='4.1' width='.8' height='.8' />
+          <rect x='13' y='5.7' width='.9' height='.7' />
+          <rect x='13.9' y='5.5' width='.8' height='.7' />
+        </g>
       </g>
     </svg>
   );

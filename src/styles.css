@@ -126,3 +126,15 @@ input {
 .toast-in {
   animation: toast-in 0.2s ease-out;
 }
+
+@keyframes logo-tail {
+  50% {
+    transform: rotate(14deg) scaleX(0.9);
+  }
+}
+
+.logo-tail {
+  transform-box: fill-box;
+  transform-origin: 0 50%;
+  animation: logo-tail 0.4s steps(1) infinite;
+}
