@@ -46,6 +46,11 @@
   --accent: #0078d4;
 }
 
+[data-item="antigravity"] {
+  --accent: #3186ff;
+  --accent-fill: linear-gradient(100deg, #3186ff, #00b95c, #fc413d);
+}
+
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);

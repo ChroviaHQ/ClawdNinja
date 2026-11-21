@@ -14,6 +14,7 @@ pub enum App {
     Science,
     Chatgpt,
     Vscode,
+    Antigravity,
 }
 
 impl App {
@@ -23,6 +24,7 @@ impl App {
             App::Science => &SCIENCE,
             App::Chatgpt => &CHATGPT,
             App::Vscode => &VSCODE,
+            App::Antigravity => &ANTIGRAVITY,
         }
     }
 
@@ -97,6 +99,19 @@ const VSCODE: Spec = Spec {
         package: "",
         roots: &[r"%LOCALAPPDATA%\Programs\Microsoft VS Code", r"%ProgramFiles%\Microsoft VS Code"],
         executable: "Code.exe",
+    },
+    chromium: true,
+};
+
+const ANTIGRAVITY: Spec = Spec {
+    download: "https://antigravity.google/download",
+    #[cfg(target_os = "macos")]
+    locator: Locator { bundle_id: "com.google.antigravity", background: None },
+    #[cfg(target_os = "windows")]
+    locator: Locator {
+        package: "",
+        roots: &[r"%LOCALAPPDATA%\Programs\Antigravity", r"%ProgramFiles%\Antigravity"],
+        executable: "Antigravity.exe",
     },
     chromium: true,
 };

@@ -1,6 +1,6 @@
 # ClawdNinja
 
-ClawdNinja is a desktop app for macOS and Windows that keeps Claude Desktop, Claude Science, and Claude Code on the network egress you choose. ChatGPT and Visual Studio Code are also supported.
+ClawdNinja is a desktop app for macOS and Windows that keeps Claude Desktop, Claude Science, and Claude Code on the network egress you choose. ChatGPT, Visual Studio Code, and Google Antigravity are also supported.
 
 <p align="center"><img src="docs/screenshot.png" alt="ClawdNinja" width="400"></p>
 
@@ -10,7 +10,7 @@ Application ──► Network egress (127.0.0.1:1080) ──► Destination
 
 ## Features
 
-- Launches Claude Desktop, Claude Science, ChatGPT, and Visual Studio Code through the egress.
+- Launches Claude Desktop, Claude Science, ChatGPT, Visual Studio Code, and Google Antigravity through the egress.
 - Opens Claude Code CLI in a terminal through the egress, or writes the egress into Claude Code's `settings.json`.
 
 ## Egress Variables
@@ -22,7 +22,7 @@ Application ──► Network egress (127.0.0.1:1080) ──► Destination
 | `NO_PROXY`, `no_proxy`                   | `localhost,127.0.0.1,::1` |
 | `NODE_USE_ENV_PROXY`                     | `1`                       |
 
-Claude Desktop, ChatGPT, and Visual Studio Code also receive `--proxy-server=http://127.0.0.1:<port>` and `--force-webrtc-ip-handling-policy=disable_non_proxied_udp`.
+Claude Desktop, ChatGPT, Visual Studio Code, and Google Antigravity also receive `--proxy-server=http://127.0.0.1:<port>` and `--force-webrtc-ip-handling-policy=disable_non_proxied_udp`.
 
 `settings.json` is located in `CLAUDE_CONFIG_DIR` when set, otherwise in `~/.claude`.
 
@@ -75,7 +75,7 @@ This bumps the version, tags `v0.2.0`, and pushes. GitHub Actions then builds an
 
 ## Trademarks
 
-ClawdNinja is not affiliated with Anthropic, OpenAI, or Microsoft. Claude, ChatGPT, and Visual Studio Code are trademarks of their respective owners.
+ClawdNinja is not affiliated with Anthropic, OpenAI, Microsoft, or Google. Claude, ChatGPT, Visual Studio Code, and Google Antigravity are trademarks of their respective owners.
 
 ## License
 

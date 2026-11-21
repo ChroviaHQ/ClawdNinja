@@ -42,7 +42,7 @@ function UpdateButton({version}: {version: string;}) {
       title={t.updateHint}
       disabled={updating}
       onClick={install}
-      className='flex h-6 items-center gap-1 rounded-md border border-line px-2 text-[11.5px] font-medium text-accent hover:enabled:bg-surface-2 disabled:opacity-60'
+      className='flex h-6 items-center gap-1 rounded-md border border-line px-2 text-[11.5px] font-medium text-ok hover:enabled:bg-surface-2 disabled:opacity-60'
     >
       {updating
         ? <Loader2 className='size-3.5 animate-spin' />

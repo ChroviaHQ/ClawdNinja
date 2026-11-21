@@ -53,7 +53,8 @@ export function Row(
 }
 
 const BUTTON_VARIANTS = {
-  primary: 'border-accent bg-accent text-on-accent hover:enabled:brightness-93',
+  primary:
+    'border-transparent [background:var(--accent-fill,var(--accent))_border-box] text-on-accent hover:enabled:brightness-93',
   secondary: 'border-line bg-surface text-text hover:enabled:bg-surface-2',
 };
 

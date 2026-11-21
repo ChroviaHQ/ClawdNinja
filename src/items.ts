@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 
 import { api, type DesktopApp } from './api';
-import { OpenAI, VisualStudioCode } from './components/BrandIcons';
+import { Antigravity, OpenAI, VisualStudioCode } from './components/BrandIcons';
 import type { IconComponent } from './components/ui';
 import { interpolate, t } from './i18n';
 
@@ -69,6 +69,7 @@ export const ITEMS: Item[] = [
   desktopApp('science', 'Claude Science', FlaskConical),
   desktopApp('chatgpt', 'ChatGPT', OpenAI),
   desktopApp('vscode', 'Visual Studio Code', VisualStudioCode),
+  desktopApp('antigravity', 'Google Antigravity', Antigravity),
   {
     id: 'cli',
     name: 'Claude Code CLI',
