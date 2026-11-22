@@ -52,48 +52,46 @@ function UpdateButton({version}: {version: string;}) {
   );
 }
 
-function useTitleBarMetrics(): TitleBarMetrics | null {
+function useTitleBarMetrics(enabled: boolean): TitleBarMetrics | null {
   const [metrics, setMetrics] = useState<TitleBarMetrics | null>(null);
   useEffect(() => {
-    if (!isMac) {
+    if (!enabled) {
       return;
     }
     void api.getTitleBarMetrics().then(value => value && setMetrics(value), () => {});
     const unlisten = api.onTitleBarMetrics(setMetrics);
     return () => void unlisten.then(dispose => dispose());
-  }, []);
-  return metrics;
+  }, [enabled]);
+  return enabled ? metrics : null;
 }
 
 export function TitleBar() {
   const updateVersion = useStore(s => s.updateVersion);
-  const metrics = useTitleBarMetrics();
+  const popover = useStore(s => s.popover);
+  const metrics = useTitleBarMetrics(isMac && !popover);
+  const drag = popover ? {} : {'data-tauri-drag-region': true};
   return (
     <header
-      data-tauri-drag-region
+      {...drag}
       className='flex h-10 shrink-0 items-center gap-3 px-4.5'
       style={metrics ? {height: metrics.height} : undefined}
     >
-      {isMac && (
+      {isMac && !popover && (
         <span
           data-tauri-drag-region
           className='-ml-4.5 w-19.5 shrink-0 self-stretch'
           style={metrics ? {width: metrics.controlsWidth} : undefined}
         />
       )}
-      <span data-tauri-drag-region className='pointer-events-none flex items-center gap-1.5'>
+      <span {...drag} className='pointer-events-none flex items-center gap-1.5'>
         <Logo />
         <h1 className='m-0 text-[13px] font-[650] tracking-tight'>ClawdNinja</h1>
       </span>
-      <span data-tauri-drag-region className='ml-auto flex items-center gap-1.5'>
+      <span {...drag} className='ml-auto flex items-center gap-1.5'>
         {updateVersion
           ? <UpdateButton version={updateVersion} />
-          : (
-            <span data-tauri-drag-region className='text-[11.5px] text-muted tabular-nums'>
-              v{version}
-            </span>
-          )}
-        {!isMac && <WindowControls />}
+          : <span {...drag} className='text-[11.5px] text-muted tabular-nums'>v{version}</span>}
+        {!isMac && !popover && <WindowControls />}
       </span>
     </header>
   );

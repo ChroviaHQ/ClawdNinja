@@ -27,6 +27,7 @@ type Store = {
   busy: Busy | null;
   note: Note | null;
   updateVersion: string | null;
+  popover: boolean;
   init: () => Promise<() => void>;
   refresh: () => Promise<void>;
   setPort: (port: string) => void;
@@ -68,6 +69,7 @@ export const useStore = create<Store>((set, get) => {
     busy: null,
     note: null,
     updateVersion: null,
+    popover: false,
 
     init: async () => {
       const onFocus = () => {
@@ -84,6 +86,7 @@ export const useStore = create<Store>((set, get) => {
           }
         }),
         api.onUpdate(updateVersion => set({updateVersion})),
+        api.onPopover(popover => set({popover})),
       ]);
       const [updateVersion] = await Promise.all([api.getPendingUpdate(), get().refresh()]);
       set({updateVersion});

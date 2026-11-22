@@ -5,6 +5,7 @@ mod egress;
 mod error;
 mod install;
 mod locale;
+mod preference;
 mod system;
 mod tray;
 mod update;
@@ -17,7 +18,7 @@ use tauri::{Manager, WindowEvent};
 use crate::egress::Egress;
 use crate::tray::Tray;
 use crate::update::{PendingUpdate, spawn_update_checker};
-use crate::window::{create_main_window, show_main_window};
+use crate::window::{MainWindow, dismiss_popover, launch_main_window, show_main_window};
 
 pub fn run() {
     tracing_subscriber::fmt()
@@ -46,23 +47,27 @@ pub fn run() {
             commands::remove_proxy,
             #[cfg(target_os = "macos")]
             commands::get_title_bar_metrics,
+            commands::is_popover,
             commands::get_pending_update,
             commands::install_update
         ])
         .setup(|app| {
-            app.manage(Egress::load(app.path().app_config_dir()?.join("egress-port")));
+            let config_dir = app.path().app_config_dir()?;
+            app.manage(Egress::load(config_dir.join("egress-port")));
+            app.manage(MainWindow::load(config_dir.join("tray-popover")));
             app.manage(Tray::new(app.handle())?);
             app.manage(PendingUpdate::default());
             spawn_update_checker(app.handle().clone());
-            create_main_window(app.handle())?;
-            show_main_window(app.handle());
+            launch_main_window(app.handle())?;
             Ok(())
         })
-        .on_window_event(|window, event| {
-            if let WindowEvent::CloseRequested { api, .. } = event {
+        .on_window_event(|window, event| match event {
+            WindowEvent::CloseRequested { api, .. } => {
                 api.prevent_close();
                 let _ = window.hide();
             }
+            WindowEvent::Focused(false) => dismiss_popover(window.app_handle()),
+            _ => {}
         })
         .build(tauri::generate_context!())
         .expect("failed to build ClawdNinja");

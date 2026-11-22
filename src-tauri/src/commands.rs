@@ -7,6 +7,7 @@ use crate::desktop::App;
 use crate::egress::Egress;
 use crate::error::CommandError;
 use crate::update::{PendingUpdate, update_failed};
+use crate::window::MainWindow;
 use crate::{cli, desktop, install, system};
 
 #[tauri::command]
@@ -90,6 +91,11 @@ pub fn get_title_bar_metrics(
     window: tauri::WebviewWindow,
 ) -> Option<crate::window::TitleBarMetrics> {
     crate::window::title_bar_metrics(&window)
+}
+
+#[tauri::command]
+pub fn is_popover(main_window: State<'_, MainWindow>) -> bool {
+    main_window.is_popover()
 }
 
 #[tauri::command]

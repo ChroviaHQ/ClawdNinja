@@ -1,9 +1,9 @@
 use objc2::MainThreadMarker;
-use objc2_app_kit::{NSWindow, NSWindowButton};
-use objc2_foundation::NSProcessInfo;
+use objc2_app_kit::{NSScreen, NSWindow, NSWindowButton};
+use objc2_foundation::{NSPoint, NSProcessInfo};
 use serde::Serialize;
 use tauri::utils::config::WindowConfig;
-use tauri::{Emitter, WebviewWindow};
+use tauri::{Emitter, PhysicalPosition, WebviewWindow};
 
 const MACOS_TAHOE_MAJOR_VERSION: isize = 26;
 const PRE_TAHOE_TRAFFIC_LIGHT_OFFSET: f64 = 4.0;
@@ -55,4 +55,43 @@ pub(super) fn publish_title_bar_metrics(window: &WebviewWindow) {
 
 fn major_version() -> isize {
     NSProcessInfo::processInfo().operatingSystemVersion().majorVersion
+}
+
+pub(super) fn apply_popover_chrome(window: &WebviewWindow, popover: bool) {
+    with_ns_window(window, move |ns_window, _| {
+        ns_window.setMovable(!popover);
+        for kind in [
+            NSWindowButton::CloseButton,
+            NSWindowButton::MiniaturizeButton,
+            NSWindowButton::ZoomButton,
+        ] {
+            if let Some(button) = ns_window.standardWindowButton(kind) {
+                button.setHidden(popover);
+            }
+        }
+    });
+}
+
+pub(super) fn set_position(window: &WebviewWindow, position: PhysicalPosition<f64>, scale: f64) {
+    let position = position.to_logical::<f64>(scale);
+    with_ns_window(window, move |ns_window, mtm| {
+        if let Some(primary) = NSScreen::screens(mtm).firstObject() {
+            ns_window.setFrameTopLeftPoint(NSPoint::new(
+                position.x,
+                primary.frame().size.height - position.y,
+            ));
+        }
+    });
+}
+
+fn with_ns_window(
+    window: &WebviewWindow,
+    action: impl FnOnce(&NSWindow, MainThreadMarker) + Send + 'static,
+) {
+    let target = window.clone();
+    let _ = window.run_on_main_thread(move || {
+        if let (Some(mtm), Ok(ns_window)) = (MainThreadMarker::new(), target.ns_window()) {
+            action(unsafe { &*ns_window.cast::<NSWindow>() }, mtm);
+        }
+    });
 }

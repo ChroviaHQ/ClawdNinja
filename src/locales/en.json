@@ -58,6 +58,7 @@
   "updateHint": "Restart and install the update",
   "tray": {
     "open": "Open ClawdNinja",
+    "popover": "Pop Up at Tray Icon",
     "checkUpdate": "Check for Updates",
     "checkingUpdate": "Checking for Updates…",
     "upToDate": "ClawdNinja {version} is up to date.",

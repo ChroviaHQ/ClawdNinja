@@ -32,11 +32,13 @@ export const api = {
   applyProxy: (port: number) => invoke<string>('apply_proxy', {port}),
   removeProxy: () => invoke<void>('remove_proxy'),
   getTitleBarMetrics: () => invoke<TitleBarMetrics | null>('get_title_bar_metrics'),
+  isPopover: () => invoke<boolean>('is_popover'),
   getPendingUpdate: () => invoke<string | null>('get_pending_update'),
   installUpdate: () => invoke<void>('install_update'),
   onInstallStage: (handler: (stage: InstallStage) => void) =>
     listenPayload('install://stage', handler),
   onUpdate: (handler: (version: string) => void) => listenPayload('app://update', handler),
+  onPopover: (handler: (popover: boolean) => void) => listenPayload('window://popover', handler),
   onTitleBarMetrics: (handler: (metrics: TitleBarMetrics) => void) =>
     listenPayload('window://title-bar-metrics', handler),
 };

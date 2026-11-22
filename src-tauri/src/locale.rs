@@ -11,6 +11,7 @@ struct Locale {
 #[serde(rename_all = "camelCase")]
 pub struct Labels {
     pub open: String,
+    pub popover: String,
     pub check_update: String,
     pub checking_update: String,
     pub up_to_date: String,
