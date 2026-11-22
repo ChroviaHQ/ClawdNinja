@@ -73,15 +73,13 @@ pub fn open_terminal(url: &str, cli: &Path) -> Result<(), CommandError> {
         .tempfile()
         .map_err(terminal_failed)?;
     let quote = |s: &str| format!("'{}'", s.replace('\'', "'\\''"));
-    let mut body = String::from("#!/bin/sh\n/bin/rm -f -- \"$0\"\ncd \"$HOME\" || exit 1\n");
-    for (key, value) in variables(url) {
-        body.push_str(&format!("export {key}={}\n", quote(value)));
-    }
+    let mut exports = variables(url)
+        .map(|(key, value)| format!("export {key}={}", quote(value)))
+        .collect::<Vec<_>>();
     if let Some(parent) = cli.parent().and_then(Path::to_str) {
-        body.push_str(&format!("export PATH={}:\"$PATH\"\n", quote(parent)));
+        exports.push(format!("export PATH={}:\"$PATH\"", quote(parent)));
     }
-    body.push_str("export BASH_SILENCE_DEPRECATION_WARNING=1\nprintf '\\033[H\\033[2J\\033[3J'\n");
-    body.push_str("exec \"${SHELL:-/bin/zsh}\" -l\n");
+    let body = include_str!("terminal.sh").replace("@EXPORTS@", &exports.join("\n"));
     script.write_all(body.as_bytes()).map_err(terminal_failed)?;
     script
         .as_file()

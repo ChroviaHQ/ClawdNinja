@@ -1,4 +1,6 @@
 $ErrorActionPreference = 'Stop'
+$ExitMissing = 2
+$ExitRunning = 3
 [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
 $name = $env:CLAWDNINJA_EXECUTABLE
 $exe = $null
@@ -28,13 +30,23 @@ if (!$exe) {
         Where-Object { Test-Path -LiteralPath $_ } |
         Select-Object -First 1
 }
-if (!$exe) { exit 2 }
-if ($env:CLAWDNINJA_DETECT -eq '1') { exit 0 }
-$running = Get-Process -Name ([IO.Path]::GetFileNameWithoutExtension($name)) -ErrorAction SilentlyContinue | Where-Object {
+if (!$exe) { exit $ExitMissing }
+if (!$env:CLAWDNINJA_PROXY_ARGUMENT) { exit 0 }
+$running = @(Get-Process -Name ([IO.Path]::GetFileNameWithoutExtension($name)) -ErrorAction SilentlyContinue | Where-Object {
     $path = $_.Path
     $path -and ($path -eq $exe -or $roots.Where({ $path.StartsWith("$_\", [StringComparison]::OrdinalIgnoreCase) }, 'First'))
-} | Select-Object -First 1
-if ($running) { exit 3 }
+})
+$arguments = $env:CLAWDNINJA_ARGUMENTS
+if ($running) {
+    $newWindowArgument = $env:CLAWDNINJA_NEW_WINDOW_ARGUMENT
+    if (!$newWindowArgument) { exit $ExitRunning }
+    $filter = ($running.Id | ForEach-Object { "ProcessId=$_" }) -join ' OR '
+    $proxied = Get-CimInstance Win32_Process -Filter $filter -Property CommandLine | Where-Object {
+        (($_.CommandLine -replace '"', '') -split '\s+') -ccontains $env:CLAWDNINJA_PROXY_ARGUMENT
+    } | Select-Object -First 1
+    if (!$proxied) { exit $ExitRunning }
+    $arguments = "$arguments $newWindowArgument".Trim()
+}
 $launcher = $exe
 if ($app) {
     $alias = $app.Extensions.Extension |
@@ -44,5 +56,4 @@ if ($app) {
     $aliasPath = if ($alias) { Join-Path $env:LOCALAPPDATA "Microsoft\WindowsApps\$alias" }
     if ($aliasPath -and (Test-Path -LiteralPath $aliasPath)) { $launcher = $aliasPath }
 }
-$argument = $env:CLAWDNINJA_ARGUMENT
-if ($argument) { Start-Process -FilePath $launcher -ArgumentList $argument } else { Start-Process -FilePath $launcher }
+if ($arguments) { Start-Process -FilePath $launcher -ArgumentList $arguments } else { Start-Process -FilePath $launcher }
